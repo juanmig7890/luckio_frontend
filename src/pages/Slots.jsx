@@ -1,10 +1,11 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import api, { getErrorMessage } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { formatChips } from '../utils/vip';
 import BetControl from '../components/BetControl';
 
-const SYMS = ['🍒', '🍋', '🔔', '💎', '7️⃣'];
+const JACKPOT_SYMBOL = '🎰';
+const SYMS = ['🍒', '🍋', '🔔', '💎', '7️⃣', JACKPOT_SYMBOL];
 const rand = () => SYMS[Math.floor(Math.random() * SYMS.length)];
 const randomGrid = () => Array.from({ length: 3 }, () => Array.from({ length: 3 }, rand));
 
@@ -15,7 +16,14 @@ export default function Slots() {
   const [spinning, setSpinning] = useState(false);
   const [winCells, setWinCells] = useState([]);
   const [message, setMessage] = useState(null);
+  const [jackpot, setJackpot] = useState(null);
   const timer = useRef(null);
+
+  const refreshJackpot = () => api.get('/slots/jackpot').then(({ data }) => setJackpot(data.amount)).catch(() => {});
+
+  useEffect(() => {
+    refreshJackpot();
+  }, []);
 
   const spin = async () => {
     setMessage(null);
@@ -29,13 +37,22 @@ export default function Slots() {
       ]);
       clearInterval(timer.current);
       setGrid(data.grid);
-      setWinCells(data.winningCells);
+
+      const scatterCells = [];
+      if (data.jackpotWon > 0) {
+        data.grid.forEach((row, r) => row.forEach((s, c) => { if (s === JACKPOT_SYMBOL) scatterCells.push(`${r}-${c}`); }));
+      }
+      setWinCells([...data.winningCells, ...scatterCells]);
       setUser(data.user);
-      setMessage(
-        data.winAmount > 0
-          ? { type: 'success', text: `🎉 ¡Ganaste ${formatChips(data.winAmount)} fichas!` }
-          : { type: 'error', text: 'Sin premio esta vez. ¡Intenta de nuevo!' }
-      );
+      refreshJackpot();
+
+      if (data.jackpotWon > 0) {
+        setMessage({ type: 'success', text: `🎰🎉 ¡JACKPOT! Ganaste el pozo completo: ${formatChips(data.jackpotWon)} fichas!` });
+      } else if (data.winAmount > 0) {
+        setMessage({ type: 'success', text: `🎉 ¡Ganaste ${formatChips(data.winAmount)} fichas!` });
+      } else {
+        setMessage({ type: 'error', text: 'Sin premio esta vez. ¡Intenta de nuevo!' });
+      }
     } catch (err) {
       clearInterval(timer.current);
       setMessage({ type: 'error', text: getErrorMessage(err) });
@@ -48,6 +65,11 @@ export default function Slots() {
     <div className="game-page">
       <h1>🎰 Tragamonedas</h1>
       <p className="muted">5 líneas: 3 filas y 2 diagonales. Tres símbolos iguales pagan.</p>
+
+      <div className="jackpot-banner">
+        <span>Pozo acumulado</span>
+        <strong>🪙 {jackpot === null ? '...' : formatChips(jackpot)}</strong>
+      </div>
 
       <div className="slot-machine">
         <div className="slot-grid">
@@ -70,6 +92,7 @@ export default function Slots() {
 
       <div className="paytable">
         <span>🍒🍒🍒 x8</span><span>🍋🍋🍋 x12</span><span>🔔🔔🔔 x25</span><span>💎💎💎 x60</span><span>7️⃣7️⃣7️⃣ x200</span>
+        <span>🎰🎰🎰 en cualquier parte = JACKPOT</span>
       </div>
     </div>
   );

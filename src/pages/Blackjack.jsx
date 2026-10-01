@@ -11,6 +11,12 @@ const RESULT_TEXT = {
   lose: { type: 'error', text: 'Perdiste esta mano' },
 };
 
+const PAIRS_LABEL = {
+  mixed: 'Par mixto (colores distintos)',
+  colored: 'Par del mismo color',
+  perfect: 'Par perfecto (mismo palo)',
+};
+
 function Hand({ title, cards, score }) {
   return (
     <div className="bj-hand">
@@ -28,6 +34,8 @@ export default function Blackjack() {
   const { setUser } = useAuth();
   const [game, setGame] = useState(null);
   const [amount, setAmount] = useState(100);
+  const [pairsEnabled, setPairsEnabled] = useState(false);
+  const [pairsBet, setPairsBet] = useState(20);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
@@ -49,7 +57,13 @@ export default function Blackjack() {
     }
   };
 
-  const start = () => run(() => api.post('/blackjack/start', { amount: Number(amount) }));
+  const start = () =>
+    run(() =>
+      api.post('/blackjack/start', {
+        amount: Number(amount),
+        pairsBet: pairsEnabled ? Number(pairsBet) || 0 : 0,
+      })
+    );
   const action = (name) => run(() => api.post(`/blackjack/${game.id}/${name}`));
 
   const active = game?.status === 'active';
@@ -58,7 +72,10 @@ export default function Blackjack() {
   return (
     <div className="game-page">
       <h1>🃏 Blackjack</h1>
-      <p className="muted">Llega a 21 sin pasarte. El crupier se planta en 17. Blackjack paga 3 a 2.</p>
+      <p className="muted">
+        Llega a 21 sin pasarte. El crupier se planta en 17. Blackjack paga 3 a 2. Apuesta opcional a Perfect Pairs sobre
+        tus primeras 2 cartas.
+      </p>
 
       {game ? (
         <div className="bj-table">
@@ -70,9 +87,21 @@ export default function Blackjack() {
         <div className="bj-table empty center muted">Haz tu apuesta para repartir las cartas</div>
       )}
 
+      {game?.pairsBet > 0 && (
+        game.pairsType ? (
+          <div className="alert alert-success center">
+            🂡 Perfect Pairs — {PAIRS_LABEL[game.pairsType]}: +{formatChips(game.pairsPayout)} fichas
+          </div>
+        ) : (
+          <div className="alert center muted small">Perfect Pairs: sin pareja esta vez (-{formatChips(game.pairsBet)} fichas)</div>
+        )
+      )}
+
       {finished && (
         <div className={`alert alert-${RESULT_TEXT[game.result].type} center`}>
-          {RESULT_TEXT[game.result].text}
+          {game.isHistoricBlackjack
+            ? '🂡♠️ ¡BLACKJACK HISTÓRICO! As de Picas + Jota negra — el origen real del nombre del juego. Paga 10 a 1.'
+            : RESULT_TEXT[game.result].text}
           {game.payout > 0 && ` · +${formatChips(game.payout)} fichas`}
         </div>
       )}
@@ -87,6 +116,31 @@ export default function Blackjack() {
       ) : (
         <>
           <BetControl amount={amount} setAmount={setAmount} disabled={busy} />
+
+          <label className="side-bet-toggle">
+            <input
+              type="checkbox"
+              checked={pairsEnabled}
+              disabled={busy}
+              onChange={(e) => setPairsEnabled(e.target.checked)}
+            />
+            <span>
+              Apostar a <strong className="gold">Perfect Pairs</strong> (mixto 6x · mismo color 12x · mismo palo 25x)
+            </span>
+          </label>
+          {pairsEnabled && (
+            <input
+              className="bet-input"
+              type="number"
+              min="10"
+              max="100000"
+              value={pairsBet}
+              disabled={busy}
+              onChange={(e) => setPairsBet(e.target.value)}
+              placeholder="Monto de Perfect Pairs"
+            />
+          )}
+
           <button className="btn btn-gold btn-block" onClick={start} disabled={busy}>
             {busy ? 'Repartiendo...' : finished ? 'Nueva mano' : 'Repartir'} · {formatChips(amount)} fichas
           </button>
