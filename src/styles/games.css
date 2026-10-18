@@ -34,7 +34,7 @@
 .spot.has .spot-btn { border-style: solid; background: rgba(0, 0, 0, 0.28); }
 .spot.has .spot-label { position: absolute; top: 7%; font-size: 0.56rem; opacity: 0.85; max-width: 86%; }
 .spot.has .spot-sub { display: none; }
-.spot-chip { animation: chipDrop 0.3s cubic-bezier(0.2, 1.4, 0.4, 1); margin-top: 20px; line-height: 0; filter: drop-shadow(0 4px 5px rgba(0, 0, 0, 0.5)); }
+.spot-chip { margin-top: 20px; line-height: 0; filter: drop-shadow(0 4px 5px rgba(0, 0, 0, 0.5)); }
 .spot-amount {
   position: absolute; left: 50%; bottom: -12px; transform: translateX(-50%); background: #0b0d0c; color: var(--gold);
   border: 1px solid rgba(201, 164, 92, 0.6); border-radius: 999px; padding: 1px 9px; font-size: 0.74rem; font-weight: 700; white-space: nowrap;
@@ -55,7 +55,7 @@
 .deal-btn { padding: 13px 30px; font-size: 1rem; }
 .result-banner {
   display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 22px; border-radius: 14px; text-align: center;
-  border: 1px solid; backdrop-filter: blur(4px); animation: pop 0.35s ease;
+  border: 1px solid; backdrop-filter: blur(4px); position: relative;
 }
 .result-banner strong { font-family: var(--font-display); font-size: 1.05rem; }
 .result-banner.win { background: rgba(62, 207, 142, 0.14); border-color: rgba(62, 207, 142, 0.6); color: #8ff0c0; }
@@ -179,4 +179,62 @@
   .bc-hands { grid-template-columns: 1fr; }
   .action-bar .btn { flex: 1 1 130px; }
 }
+.rl-layout > *, .rl-felt, .rl-scroll { min-width: 0; max-width: 100%; }
+
+/* ---------- Varias manos (dividir) ---------- */
+.bj-hands { display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-start; gap: 22px 30px; }
+.bj-hand { position: relative; padding: 6px 8px 8px; border-radius: 14px; border: 1px solid transparent; transition: border-color 0.25s, background 0.25s, box-shadow 0.25s; }
+.bj-hand.active { border-color: rgba(240, 212, 135, 0.7); background: rgba(240, 212, 135, 0.07); box-shadow: 0 0 26px rgba(240, 212, 135, 0.22); }
+.bj-hand.small .bj-cards { min-height: 104px; }
+.bj-hand.small .bj-cards > .pcard + .pcard { margin-left: -40px; }
+.hand-bet {
+  font-size: 0.72rem; font-weight: 700; color: var(--gold); border: 1px solid rgba(201, 164, 92, 0.55); border-radius: 999px;
+  padding: 1px 10px; background: rgba(0, 0, 0, 0.35);
+}
+.hand-tag { font-size: 0.74rem; font-weight: 700; border-radius: 999px; padding: 2px 11px; border: 1px solid; }
+.hand-tag.win { color: #8ff0c0; border-color: rgba(62, 207, 142, 0.6); background: rgba(62, 207, 142, 0.12); }
+.hand-tag.push { color: #ecd391; border-color: rgba(201, 164, 92, 0.6); background: rgba(201, 164, 92, 0.14); }
+.hand-tag.lose { color: #ff9d92; border-color: rgba(229, 88, 75, 0.55); background: rgba(229, 88, 75, 0.12); }
+
+/* ---------- Chispas de victoria ---------- */
+.burst { position: absolute; left: 50%; top: 50%; width: 0; height: 0; pointer-events: none; z-index: 2; }
+.burst-dot { position: absolute; border-radius: 50%; background: radial-gradient(circle, #fff3c4, var(--gold)); box-shadow: 0 0 8px rgba(240, 212, 135, 0.9); }
+
+/* ---------- Mesas en vivo ---------- */
+.mode-tabs { display: inline-flex; border: 1px solid var(--border); border-radius: 999px; padding: 3px; background: rgba(255, 255, 255, 0.03); }
+.mode-tabs a { font-size: 0.82rem; font-weight: 600; padding: 6px 16px; border-radius: 999px; color: var(--muted); display: inline-flex; align-items: center; gap: 7px; transition: 0.2s; }
+.mode-tabs a:hover { color: var(--text); }
+.mode-tabs a.on { background: var(--gold); color: #14110a; }
+.live-dot, .live-tag i { width: 8px; height: 8px; border-radius: 50%; background: #ff5a4d; box-shadow: 0 0 0 0 rgba(255, 90, 77, 0.7); animation: livePulse 1.6s infinite; display: inline-block; }
+.mode-tabs a.on .live-dot { background: #b3261e; }
+.live-tag {
+  position: absolute; top: 12px; left: 12px; display: inline-flex; align-items: center; gap: 7px; font-size: 0.68rem; font-weight: 800;
+  letter-spacing: 0.12em; color: #fff; background: rgba(0, 0, 0, 0.55); border: 1px solid rgba(255, 90, 77, 0.6); border-radius: 999px; padding: 4px 10px; backdrop-filter: blur(4px);
+}
+@keyframes livePulse { 70% { box-shadow: 0 0 0 8px rgba(255, 90, 77, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 90, 77, 0); } }
+
+.live-bar {
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 12px 16px; border: 1px solid var(--border);
+  border-radius: 16px; background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01));
+}
+.live-clock { position: relative; width: 52px; height: 52px; flex: none; }
+.live-clock svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.live-clock circle { fill: none; stroke-width: 3.5; }
+.live-clock .track { stroke: rgba(255, 255, 255, 0.1); }
+.live-clock .arc { stroke: var(--gold); stroke-linecap: round; }
+.live-clock.phase-resolving .arc { stroke: #ff9d92; }
+.live-clock.phase-results .arc { stroke: #8ff0c0; }
+.live-clock b { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--font-display); font-size: 1.05rem; }
+.live-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 180px; }
+.live-info strong { font-family: var(--font-display); font-size: 1.02rem; }
+.live-players { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; margin: 0; padding: 0; }
+.live-players li { display: inline-flex; align-items: center; gap: 7px; padding: 4px 10px 4px 4px; border-radius: 999px; border: 1px solid var(--border); font-size: 0.8rem; position: relative; }
+.live-players li.me { border-color: rgba(201, 164, 92, 0.7); background: rgba(201, 164, 92, 0.1); }
+.live-players .avatar { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 0.72rem; font-weight: 700; background: var(--gold-soft); color: var(--gold); }
+.live-players .pname { max-width: 96px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.live-players .pbet { width: 7px; height: 7px; border-radius: 50%; background: #3ecf8e; }
+.live-players .more { padding: 4px 10px; color: var(--muted); }
+.rl-cell.placed { box-shadow: inset 0 0 0 2px rgba(240, 212, 135, 0.85); }
+
+/* Que ninguna mesa ensanche la página en pantallas pequeñas */
 .rl-layout > *, .rl-felt, .rl-scroll { min-width: 0; max-width: 100%; }

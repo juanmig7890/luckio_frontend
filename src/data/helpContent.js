@@ -20,8 +20,10 @@ export const HELP = {
         items: [
           'Pedir: recibes otra carta. Si pasas de 21 pierdes al instante.',
           'Plantarse: te quedas con tu mano y juega el crupier.',
-          'Doblar: solo con tus 2 primeras cartas. Doblas la apuesta y recibes una sola carta.',
-          'Retirarse: solo con tus 2 primeras cartas. Recuperas la mitad de la apuesta.',
+          'Doblar: solo con 2 cartas. Doblas la apuesta y recibes una sola carta (también puedes doblar después de dividir).',
+          'Dividir: si tus 2 cartas valen lo mismo (K con Q también), separas la mano en dos con otra apuesta igual. Cada mano recibe una carta y se juega por separado. Máximo 4 manos.',
+          'Ases divididos: cada As recibe una sola carta, y un 21 así cuenta como 21 normal (paga 1 a 1), no como blackjack.',
+          'Retirarse: solo con tus 2 primeras cartas y sin haber dividido. Recuperas la mitad de la apuesta.',
         ],
       },
       {
@@ -30,6 +32,10 @@ export const HELP = {
           'Si el crupier muestra un As, antes de jugar puedes tomar el seguro.',
           'Cuesta media apuesta y paga 2 a 1 si el crupier tiene blackjack. Si no lo tiene, pierdes el seguro y la mano sigue.',
         ],
+      },
+      {
+        heading: 'Charlie de 5 cartas',
+        items: ['Si llegas a 5 cartas sin pasarte de 21, ganas la mano automáticamente (1 a 1), sin importar lo que tenga el crupier.'],
       },
       {
         heading: 'El crupier',
@@ -156,3 +162,16 @@ export const HELP = {
     ],
   },
 };
+
+// Mesas en vivo: mismas reglas que la mesa individual, más cómo funciona la mesa compartida
+const LIVE_SECTION = {
+  heading: 'Mesa en vivo',
+  items: [
+    'Es una mesa compartida: todos los jugadores sentados ven el mismo resultado al mismo tiempo.',
+    'Cada ronda tiene 3 momentos: apuestas abiertas (20 s), sorteo y animación (7 s) y resultado (4 s). Luego empieza otra ronda sola.',
+    'Pon tus fichas en el tapete y pulsa «Apostar» antes de que se acabe el tiempo. Lo apostado se cobra al enviarlo; puedes apostar varias veces en la misma ronda.',
+    'Tus pagos se acreditan automáticamente aunque cierres la página.',
+  ],
+};
+HELP.rouletteLive = { ...HELP.roulette, title: 'Cómo jugar a la Ruleta en vivo', sections: [LIVE_SECTION, ...HELP.roulette.sections] };
+HELP.baccaratLive = { ...HELP.baccarat, title: 'Cómo jugar Bacará en vivo', sections: [LIVE_SECTION, ...HELP.baccarat.sections] };
