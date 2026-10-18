@@ -1,3 +1,4 @@
+import { motion } from 'motion/react';
 // Carta dibujada en SVG. Acepta el formato que ya devuelve el backend: { code, value, suit } o { hidden: true }.
 // Si "hidden" pasa a false con la misma carta montada, se voltea con una animación 3D (no reaparece).
 const RANK = { ACE: 'A', KING: 'K', QUEEN: 'Q', JACK: 'J' };
@@ -84,11 +85,18 @@ export default function PlayingCard({ card, width = 92, delay = 0, faceDown }) {
   const down = faceDown ?? Boolean(card?.hidden);
   const known = card && !card.hidden && card.suit && card.value;
   return (
-    <div className={`pcard ${down ? 'down' : ''}`} style={{ width, '--delay': `${delay}ms` }}>
+    <motion.div
+      className={`pcard ${down ? 'down' : ''}`}
+      style={{ width }}
+      // La carta sale del zapato (arriba a la derecha) con un resorte y cae en su lugar
+      initial={{ opacity: 0, x: 120, y: -130, rotate: 16, scale: 0.8 }}
+      animate={{ opacity: 1, x: 0, y: 0, rotate: 0, scale: 1 }}
+      transition={{ type: 'spring', stiffness: 190, damping: 21, delay: delay / 1000 }}
+    >
       <div className="pcard-inner">
         <div className="pcard-face pcard-front">{known && <Front card={card} />}</div>
         <div className="pcard-face pcard-back"><Back /></div>
       </div>
-    </div>
+    </motion.div>
   );
 }

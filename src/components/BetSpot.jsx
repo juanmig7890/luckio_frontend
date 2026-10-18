@@ -1,3 +1,4 @@
+import { motion } from 'motion/react';
 import Chip from './Chip';
 import { formatChips } from '../utils/vip';
 
@@ -12,9 +13,15 @@ export default function BetSpot({ label, sub, amount = 0, onClick, onClear, disa
         <span className="spot-label">{label}</span>
         {sub && <span className="spot-sub">{sub}</span>}
         {amount > 0 && (
-          <span className="spot-chip">
+          <motion.span
+            key={amount}
+            className="spot-chip"
+            initial={{ y: -40, scale: 1.35, opacity: 0, rotate: -12 }}
+            animate={{ y: 0, scale: 1, opacity: 1, rotate: 0 }}
+            transition={{ type: 'spring', stiffness: 460, damping: 17 }}
+          >
             <Chip value={topChip(amount)} size={Math.round(size * 0.5)} />
-          </span>
+          </motion.span>
         )}
       </button>
       {amount > 0 && <span className="spot-amount">{formatChips(amount)}</span>}

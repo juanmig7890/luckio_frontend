@@ -3,6 +3,7 @@ import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { formatChips } from '../utils/vip';
 import VipBadge from './VipBadge';
+import CountUp from './motion/CountUp';
 import RechargeModal from './RechargeModal';
 
 export default function Navbar() {
@@ -26,7 +27,7 @@ export default function Navbar() {
             <VipBadge level={user.vipLevel} />
             <div className="balance">
               <span className="balance-label">Saldo</span>
-              <strong>🪙 {formatChips(user.balance)}</strong>
+              <strong>🪙 <CountUp value={user.balance} format={(n) => formatChips(Math.round(n))} /></strong>
             </div>
             <button className="btn btn-gold" onClick={() => setShowRecharge(true)}>
               + Recargar Fichas
