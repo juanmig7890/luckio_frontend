@@ -6,8 +6,8 @@ export const GAMES = [
   { id: 'roulette', name: 'Ruleta', description: 'Ruleta europea: número, color, docena y más.', colors: ['#4a1717', '#8d2a22'], available: true },
   { id: 'slots', name: 'Tragamonedas', description: 'Alinea símbolos y persigue el jackpot.', colors: ['#2f1b45', '#5b2f8a'], available: true },
   { id: 'sports', name: 'Apuestas Deportivas', description: 'Cuotas de los próximos partidos.', colors: ['#10304f', '#1f5f94'], available: true },
-  { id: 'baccarat', name: 'Bacará', description: 'Punto, Banca o Empate, con apuestas de pares.', colors: ['#0f3340', '#1a5668'], available: false },
-  { id: 'plinko', name: 'Plinko', description: 'Suelta la bola y mira dónde cae.', colors: ['#3d2a0e', '#7a5617'], available: false },
+  { id: 'baccarat', name: 'Bacará', description: 'Punto, Banca o Empate, con apuestas de pares.', colors: ['#0f3340', '#1a5668'], available: true },
+  { id: 'plinko', name: 'Plinko', description: 'Suelta la bola y mira dónde cae.', colors: ['#3d2a0e', '#7a5617'], available: true },
 ];
 
 export default function Lobby() {
