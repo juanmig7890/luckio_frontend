@@ -1,4 +1,5 @@
-import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
+import { MotionConfig, motion } from 'motion/react';
 import { useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Login from './pages/Login';
@@ -10,6 +11,10 @@ import Slots from './pages/Slots';
 import Roulette from './pages/Roulette';
 import Blackjack from './pages/Blackjack';
 import Sports from './pages/Sports';
+import Baccarat from './pages/Baccarat';
+import Plinko from './pages/Plinko';
+import RouletteLive from './pages/RouletteLive';
+import BaccaratLive from './pages/BaccaratLive';
 
 function Splash() {
   return <div className="splash"><div className="logo logo-big">LUCK<span>.IO</span></div></div>;
@@ -28,18 +33,22 @@ function PublicRoute() {
 }
 
 function Layout() {
+  const { pathname } = useLocation();
   return (
     <>
       <Navbar />
-      <main className="container">
+      {/* Cada pantalla entra con un fundido y un pequeño deslizamiento */}
+      <motion.main key={pathname} className="container" initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, ease: 'easeOut' }}>
         <Outlet />
-      </main>
+      </motion.main>
     </>
   );
 }
 
 export default function App() {
   return (
+    // reducedMotion="user": si el sistema pide menos animación, Motion la respeta
+    <MotionConfig reducedMotion="user">
     <Routes>
       <Route element={<PublicRoute />}>
         <Route path="/login" element={<Login />} />
@@ -54,11 +63,16 @@ export default function App() {
           <Route path="/game/roulette" element={<Roulette />} />
           <Route path="/game/blackjack" element={<Blackjack />} />
           <Route path="/game/sports" element={<Sports />} />
+          <Route path="/game/baccarat" element={<Baccarat />} />
+          <Route path="/game/roulette-live" element={<RouletteLive />} />
+          <Route path="/game/baccarat-live" element={<BaccaratLive />} />
+          <Route path="/game/plinko" element={<Plinko />} />
           <Route path="/game/:id" element={<ComingSoon />} />
         </Route>
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </MotionConfig>
   );
 }
