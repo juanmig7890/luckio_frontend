@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import api, { getErrorMessage } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { formatChips } from '../utils/vip';
-import { sleep, baccaratPoints } from '../utils/helpers';
-import PlayingCard from '../components/PlayingCard';
+import { sleep } from '../utils/helpers';
+import BcHand from '../components/BcHand';
+import ModeTabs from '../components/ModeTabs';
 import BetSpot from '../components/BetSpot';
 import ChipTray from '../components/ChipTray';
 import HelpPanel from '../components/HelpPanel';
@@ -11,23 +12,6 @@ import HelpPanel from '../components/HelpPanel';
 const EMPTY = { player: 0, banker: 0, tie: 0, playerPair: 0, bankerPair: 0 };
 const WINNER_TEXT = { player: 'Gana el Punto', banker: 'Gana la Banca', tie: 'Empate' };
 const MAX_BET = 100000;
-
-const totalOf = (list) => list.filter((c) => !c.down).reduce((s, c) => s + baccaratPoints(c.card), 0) % 10;
-
-function BcHand({ title, list, win }) {
-  return (
-    <div className={`bc-hand ${win ? 'win' : ''}`}>
-      <div className="bc-hand-head">
-        <span>{title}</span>
-        <strong className="score-bubble inline">{list.length ? totalOf(list) : '–'}</strong>
-      </div>
-      <div className="bj-cards">
-        {list.map((c, i) => <PlayingCard key={i} card={c.card} faceDown={c.down} width={88} />)}
-        {list.length === 0 && <div className="bj-slot" aria-hidden="true" />}
-      </div>
-    </div>
-  );
-}
 
 export default function Baccarat() {
   const { setUser } = useAuth();
@@ -99,6 +83,7 @@ export default function Baccarat() {
     <div className="game-page wide">
       <div className="page-head">
         <h1>Bacará</h1>
+        <ModeTabs current="solo" soloTo="/game/baccarat" liveTo="/game/baccarat-live" />
         <HelpPanel game="baccarat" />
       </div>
 

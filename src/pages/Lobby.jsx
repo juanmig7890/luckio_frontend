@@ -1,3 +1,4 @@
+import { motion } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
 import GameCard from '../components/GameCard';
 
@@ -8,6 +9,8 @@ export const GAMES = [
   { id: 'sports', name: 'Apuestas Deportivas', description: 'Cuotas de los próximos partidos.', colors: ['#10304f', '#1f5f94'], available: true },
   { id: 'baccarat', name: 'Bacará', description: 'Punto, Banca o Empate, con apuestas de pares.', colors: ['#0f3340', '#1a5668'], available: true },
   { id: 'plinko', name: 'Plinko', description: 'Suelta la bola y mira dónde cae.', colors: ['#3d2a0e', '#7a5617'], available: true },
+  { id: 'roulette-live', art: 'roulette', live: true, name: 'Ruleta en vivo', description: 'Mesa compartida: todos ven el mismo giro al mismo tiempo.', colors: ['#3d1212', '#a3302a'], available: true },
+  { id: 'baccarat-live', art: 'baccarat', live: true, name: 'Bacará en vivo', description: 'Una mano para toda la mesa, con apuestas de cada jugador.', colors: ['#0b2c38', '#1f7184'], available: true },
 ];
 
 export default function Lobby() {
@@ -23,11 +26,11 @@ export default function Lobby() {
         <p className="muted">Elige una mesa y que la suerte te acompañe.</p>
       </section>
 
-      <section className="games-grid">
+      <motion.section className="games-grid" initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: 0.07 } } }}>
         {GAMES.map((g) => (
           <GameCard key={g.id} game={g} />
         ))}
-      </section>
+      </motion.section>
     </>
   );
 }
