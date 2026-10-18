@@ -1,4 +1,5 @@
 import { formatChips } from '../utils/vip';
+import Chip from './Chip';
 
 const PRESETS = [10, 50, 100, 500, 1000];
 
@@ -6,17 +7,17 @@ export default function BetControl({ amount, setAmount, disabled, label = 'Tu ap
   return (
     <div className="bet-control">
       <span className="muted small">{label}</span>
-      <div className="bet-presets">
+      <div className="bet-presets chips-row">
         {PRESETS.map((v) => (
-          <button
+          <Chip
             key={v}
-            type="button"
+            value={v}
+            size={52}
             disabled={disabled}
-            className={`chip-btn ${Number(amount) === v ? 'active' : ''}`}
+            selected={Number(amount) === v}
             onClick={() => setAmount(v)}
-          >
-            {formatChips(v)}
-          </button>
+            title={`${formatChips(v)} fichas`}
+          />
         ))}
       </div>
       <input

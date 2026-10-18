@@ -3,6 +3,7 @@ import api, { getErrorMessage } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { formatChips } from '../utils/vip';
 import BetControl from '../components/BetControl';
+import HelpPanel from '../components/HelpPanel';
 
 const DEAL_DELAY = 450; // ms entre cada carta que se revela, para que no se vea todo de golpe
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -146,7 +147,8 @@ export default function Blackjack() {
 
   return (
     <div className="game-page">
-      <h1>🃏 Blackjack</h1>
+      <h1>Blackjack</h1>
+      <HelpPanel game="blackjack" />
       <p className="muted">
         Llega a 21 sin pasarte. El crupier se planta en 17. Blackjack paga 3 a 2. Apuesta opcional a Perfect Pairs sobre
         tus primeras 2 cartas, o retirate y recuperá la mitad si no te gusta tu mano.

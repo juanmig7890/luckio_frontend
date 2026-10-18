@@ -3,6 +3,7 @@ import api, { getErrorMessage } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { formatChips } from '../utils/vip';
 import BetControl from '../components/BetControl';
+import HelpPanel from '../components/HelpPanel';
 
 const REDS = new Set([1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36]);
 const colorOf = (n) => (n === 0 ? 'green' : REDS.has(n) ? 'red' : 'black');
@@ -135,7 +136,8 @@ export default function Roulette() {
 
   return (
     <div className="game-page wide">
-      <h1>🎡 Ruleta</h1>
+      <h1>Ruleta</h1>
+      <HelpPanel game="roulette" />
       <p className="muted">
         Elegí varios números, colores, docenas o columnas y agregalos a tu apuesta antes de girar — como en una mesa real.
         Número exacto paga 35 a 1, columnas/docenas 3 a 1, el resto 2 a 1. El 0 solo pierde ahí, pero las apuestas

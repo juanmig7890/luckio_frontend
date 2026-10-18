@@ -3,6 +3,7 @@ import api, { getErrorMessage } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { formatChips } from '../utils/vip';
 import BetControl from '../components/BetControl';
+import HelpPanel from '../components/HelpPanel';
 
 const JACKPOT_SYMBOL = '🎰';
 const SYMS = ['🍒', '🍋', '🔔', '💎', '7️⃣', JACKPOT_SYMBOL];
@@ -63,7 +64,8 @@ export default function Slots() {
 
   return (
     <div className="game-page">
-      <h1>🎰 Tragamonedas</h1>
+      <h1>Tragamonedas</h1>
+      <HelpPanel game="slots" />
       <p className="muted">5 líneas: 3 filas y 2 diagonales. Tres símbolos iguales pagan.</p>
 
       <div className="jackpot-banner">
