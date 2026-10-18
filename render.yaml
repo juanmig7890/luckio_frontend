@@ -1,0 +1,14 @@
+# Blueprint de Render para el frontend de LUCK.IO (sitio estático).
+services:
+  - type: web
+    name: luckio-web
+    runtime: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        sync: false   # https://<tu-api>.onrender.com/api
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
