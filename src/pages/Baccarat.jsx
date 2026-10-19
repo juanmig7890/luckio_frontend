@@ -29,7 +29,10 @@ export default function Baccarat() {
   }, []);
 
   const stake = Object.values(bets).reduce((s, v) => s + v, 0);
-  const add = (k) => !busy && setBets((b) => ({ ...b, [k]: Math.min(MAX_BET, b[k] + chip) }));
+  // En bacará real no se apuesta a Punto Y a Banca en la misma mano: una vez que apuestas de un lado,
+  // el otro se bloquea hasta que limpies la apuesta.
+  const sideBlocked = (k) => (k === 'player' && bets.banker > 0) || (k === 'banker' && bets.player > 0);
+  const add = (k) => !busy && !sideBlocked(k) && setBets((b) => ({ ...b, [k]: Math.min(MAX_BET, b[k] + chip) }));
   const clearOne = (k) => setBets((b) => ({ ...b, [k]: 0 }));
 
   const deal = async () => {
@@ -74,7 +77,7 @@ export default function Baccarat() {
   };
 
   const spot = (key, label, sub, extra = {}) => (
-    <BetSpot key={key} label={label} sub={sub} amount={bets[key]} disabled={busy} shape="rect" size={key === 'tie' || key === 'player' || key === 'banker' ? 118 : 96}
+    <BetSpot key={key} label={label} sub={sub} amount={bets[key]} disabled={busy || sideBlocked(key)} shape="rect" size={key === 'tie' || key === 'player' || key === 'banker' ? 118 : 96}
       onClick={() => add(key)} onClear={() => clearOne(key)} {...extra} />
   );
   const won = (k) => !busy && round && round.payouts[k] > 0;
@@ -107,6 +110,9 @@ export default function Baccarat() {
           {spot('banker', 'Banca', '1 a 1 · −5%', { win: won('banker') })}
           {spot('bankerPair', 'Pareja Banca', '11 a 1', { win: won('bankerPair') })}
         </div>
+        {(bets.player > 0 || bets.banker > 0) && (
+          <p className="felt-note">No puedes apostar a Punto y a Banca en la misma mano (no se hace en una mesa real).</p>
+        )}
       </div>
 
       <div className="scoreboard" aria-label="Marcador de las últimas rondas">

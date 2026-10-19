@@ -71,7 +71,10 @@ export default function BaccaratLive() {
     }
   }, [state?.round, phase]);
 
-  const add = (k) => betting && setDraft((b) => ({ ...b, [k]: Math.min(MAX_BET, b[k] + chip) }));
+  // En bacará real no se apuesta a Punto Y a Banca en la misma mano: una vez que apuestas de un lado
+  // (ya confirmado o todavía en el borrador), el otro se bloquea hasta que limpies esa apuesta.
+  const sideBlocked = (k) => (k === 'player' && draft.banker + placed.banker > 0) || (k === 'banker' && draft.player + placed.player > 0);
+  const add = (k) => betting && !sideBlocked(k) && setDraft((b) => ({ ...b, [k]: Math.min(MAX_BET, b[k] + chip) }));
   const clearOne = (k) => setDraft((b) => ({ ...b, [k]: 0 }));
 
   const confirm = async () => {
@@ -90,7 +93,7 @@ export default function BaccaratLive() {
   };
 
   const spot = (key, label, sub, extra = {}) => (
-    <BetSpot key={key} label={label} sub={sub} amount={draft[key] + placed[key]} disabled={!betting} shape="rect"
+    <BetSpot key={key} label={label} sub={sub} amount={draft[key] + placed[key]} disabled={!betting || sideBlocked(key)} shape="rect"
       size={key === 'tie' || key === 'player' || key === 'banker' ? 118 : 96}
       onClick={() => add(key)} onClear={() => clearOne(key)} {...extra} />
   );
@@ -136,6 +139,9 @@ export default function BaccaratLive() {
           {spot('banker', 'Banca', '1 a 1 · −5%', { win: won('banker') })}
           {spot('bankerPair', 'Pareja Banca', '11 a 1', { win: won('bankerPair') })}
         </div>
+        {(draft.player + placed.player > 0 || draft.banker + placed.banker > 0) && (
+          <p className="felt-note">No puedes apostar a Punto y a Banca en la misma mano (no se hace en una mesa real).</p>
+        )}
       </div>
 
       <div className="scoreboard" aria-label="Marcador de la mesa">
