@@ -7,6 +7,7 @@ import PlayingCard from '../components/PlayingCard';
 import BetSpot from '../components/BetSpot';
 import ChipTray from '../components/ChipTray';
 import HelpPanel from '../components/HelpPanel';
+import ModeTabs from '../components/ModeTabs';
 import ResultBanner from '../components/motion/ResultBanner';
 import { motion } from 'motion/react';
 
@@ -186,6 +187,7 @@ export default function Blackjack() {
     <div className="game-page wide bj-page">
       <div className="page-head">
         <h1>Blackjack</h1>
+        <ModeTabs current="solo" soloTo="/game/blackjack" liveTo="/game/blackjack-live" />
         <HelpPanel game="blackjack" />
       </div>
 

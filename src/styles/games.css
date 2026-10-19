@@ -196,6 +196,35 @@
 .hand-tag.push { color: #ecd391; border-color: rgba(201, 164, 92, 0.6); background: rgba(201, 164, 92, 0.14); }
 .hand-tag.lose { color: #ff9d92; border-color: rgba(229, 88, 75, 0.55); background: rgba(229, 88, 75, 0.12); }
 
+/* ---------- Blackjack en vivo (6 sillas independientes, un crupier) ---------- */
+.bjl-felt { display: flex; flex-direction: column; gap: 16px; min-height: 520px; }
+.bjl-dealer { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.bjl-seats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.bjl-seat {
+  position: relative; border-radius: 16px; border: 1px solid rgba(243, 241, 234, 0.14); background: rgba(0, 0, 0, 0.22);
+  padding: 10px 10px 12px; display: flex; flex-direction: column; align-items: center; gap: 6px; min-height: 172px; justify-content: flex-start;
+  transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+}
+.bjl-seat.empty { justify-content: center; background: rgba(0, 0, 0, 0.12); border-style: dashed; gap: 10px; min-height: 120px; }
+.bjl-seat.mine { border-color: rgba(201, 164, 92, 0.55); background: rgba(201, 164, 92, 0.06); }
+.bjl-seat.turn { border-color: #f0d487; box-shadow: 0 0 0 3px rgba(240, 212, 135, 0.22), 0 0 26px rgba(240, 212, 135, 0.4); animation: spotWin 1s ease-in-out infinite alternate; }
+.bjl-seat-head { display: flex; align-items: center; gap: 8px; width: 100%; }
+.bjl-seat-head .pname { font-weight: 700; font-size: 0.86rem; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bjl-seat .seat-no { font-size: 0.68rem; color: var(--muted); letter-spacing: 0.05em; }
+.bjl-seat .avatar { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 0.74rem; font-weight: 700; background: var(--gold-soft); color: var(--gold); flex: none; }
+.bjl-hands { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.bjl-seats .bj-cards { min-height: 78px; }
+.bjl-seats .bj-cards > .pcard + .pcard { margin-left: -42px; }
+.bjl-seats .bj-hand.small .bj-cards > .pcard + .pcard { margin-left: -36px; }
+
+@media (max-width: 860px) {
+  .bjl-seats { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+  .bjl-seats { grid-template-columns: 1fr; }
+  .bjl-seat { min-height: auto; }
+}
+
 /* ---------- Chispas de victoria ---------- */
 .burst { position: absolute; left: 50%; top: 50%; width: 0; height: 0; pointer-events: none; z-index: 2; }
 .burst-dot { position: absolute; border-radius: 50%; background: radial-gradient(circle, #fff3c4, var(--gold)); box-shadow: 0 0 8px rgba(240, 212, 135, 0.9); }

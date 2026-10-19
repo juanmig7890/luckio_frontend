@@ -11,6 +11,7 @@ export const GAMES = [
   { id: 'plinko', name: 'Plinko', description: 'Suelta la bola y mira dónde cae.', colors: ['#3d2a0e', '#7a5617'], available: true },
   { id: 'roulette-live', art: 'roulette', live: true, name: 'Ruleta en vivo', description: 'Mesa compartida: todos ven el mismo giro al mismo tiempo.', colors: ['#3d1212', '#a3302a'], available: true },
   { id: 'baccarat-live', art: 'baccarat', live: true, name: 'Bacará en vivo', description: 'Una mano para toda la mesa, con apuestas de cada jugador.', colors: ['#0b2c38', '#1f7184'], available: true },
+  { id: 'blackjack-live', art: 'blackjack', live: true, name: 'Blackjack en vivo', description: '6 sillas independientes, un mismo crupier para toda la mesa.', colors: ['#122a1f', '#1d7a52'], available: true },
 ];
 
 export default function Lobby() {

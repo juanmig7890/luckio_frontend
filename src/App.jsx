@@ -15,6 +15,7 @@ import Baccarat from './pages/Baccarat';
 import Plinko from './pages/Plinko';
 import RouletteLive from './pages/RouletteLive';
 import BaccaratLive from './pages/BaccaratLive';
+import BlackjackLive from './pages/BlackjackLive';
 
 function Splash() {
   return <div className="splash"><div className="logo logo-big">LUCK<span>.IO</span></div></div>;
@@ -66,6 +67,7 @@ export default function App() {
           <Route path="/game/baccarat" element={<Baccarat />} />
           <Route path="/game/roulette-live" element={<RouletteLive />} />
           <Route path="/game/baccarat-live" element={<BaccaratLive />} />
+          <Route path="/game/blackjack-live" element={<BlackjackLive />} />
           <Route path="/game/plinko" element={<Plinko />} />
           <Route path="/game/:id" element={<ComingSoon />} />
         </Route>

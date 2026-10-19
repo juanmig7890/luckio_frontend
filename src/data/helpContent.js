@@ -175,3 +175,18 @@ const LIVE_SECTION = {
 };
 HELP.rouletteLive = { ...HELP.roulette, title: 'Cómo jugar a la Ruleta en vivo', sections: [LIVE_SECTION, ...HELP.roulette.sections] };
 HELP.baccaratLive = { ...HELP.baccarat, title: 'Cómo jugar Bacará en vivo', sections: [LIVE_SECTION, ...HELP.baccarat.sections] };
+
+// El blackjack en vivo no comparte una sola mano (como Ruleta/Bacará): tiene 6 sillas independientes,
+// cada una con sus propias cartas y decisiones, pero las 6 juegan contra el mismo crupier.
+const BLACKJACK_LIVE_SECTION = {
+  heading: 'Mesa en vivo: 6 sillas, un solo crupier',
+  items: [
+    'La mesa tiene 6 sillas. Elige una libre para sentarte; mientras no apuestes, puedes levantarte cuando quieras.',
+    'Cada silla reparte y juega SU propia mano de forma independiente (incluidas sus apuestas laterales), pero las 6 sillas comparten el mismo crupier.',
+    'Cuando te toca a ti, tienes un tiempo límite para decidir (se ve en el reloj de arriba). Si no respondes a tiempo, tu mano se planta sola, igual que en una mesa real.',
+    'El seguro (si el crupier muestra un As) se ofrece a todas las sillas con apuesta al mismo tiempo, cada una decide por su cuenta.',
+    'El número de cartas que quedan en el zapato se ve arriba: cuando baja demasiado, la mesa arma un zapato nuevo antes de la siguiente ronda, igual que en un casino real.',
+    'Tus pagos se acreditan automáticamente al terminar la ronda, aunque cierres la página.',
+  ],
+};
+HELP.blackjackLive = { ...HELP.blackjack, title: 'Cómo jugar Blackjack en vivo', sections: [BLACKJACK_LIVE_SECTION, ...HELP.blackjack.sections] };
