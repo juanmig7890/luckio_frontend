@@ -45,8 +45,17 @@
 }
 .spot-clear:hover { color: var(--red); border-color: var(--red); }
 .spot.win .spot-btn { border-color: #f0d487; box-shadow: 0 0 0 3px rgba(240, 212, 135, 0.25), 0 0 26px rgba(240, 212, 135, 0.55); animation: spotWin 1s ease-in-out infinite alternate; }
+.spot.locked .spot-btn { border-color: rgba(201, 164, 92, 0.8); box-shadow: 0 0 0 2px rgba(201, 164, 92, 0.22); cursor: default; }
 @keyframes chipDrop { from { transform: translateY(-26px) scale(1.25); opacity: 0; } }
 @keyframes spotWin { to { box-shadow: 0 0 0 5px rgba(240, 212, 135, 0.18), 0 0 38px rgba(240, 212, 135, 0.8); } }
+
+/* ---------- Pila de fichas (apuestas que se van amontonando) ---------- */
+.chip-stack { position: relative; margin: 0 auto; }
+.chip-stack-layer { position: absolute; left: 0; right: 0; display: grid; place-items: center; line-height: 0; filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.5)); }
+.chip-stack-more {
+  position: absolute; top: -6px; right: -12px; background: #0b0d0c; color: var(--gold); border: 1px solid rgba(201, 164, 92, 0.6);
+  border-radius: 999px; padding: 0 6px; font-size: 0.6rem; font-weight: 700; line-height: 1.5; z-index: 20;
+}
 
 /* ---------- Controles comunes ---------- */
 .chip-tray { display: flex; flex-direction: column; align-items: center; gap: 10px; padding-top: 6px; }

@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { formatChips } from '../utils/vip';
 import PlayingCard from '../components/PlayingCard';
-import BetSpot from '../components/BetSpot';
+import ChipStack from '../components/ChipStack';
 import ChipTray from '../components/ChipTray';
 import HelpPanel from '../components/HelpPanel';
 import ModeTabs from '../components/ModeTabs';
@@ -25,6 +25,32 @@ const PHASE_LABEL = {
 };
 const RESULT_TAG = { blackjack: 'Blackjack', win: 'Ganó', push: 'Empate', lose: 'Perdió', surrender: 'Retirada' };
 const PAIRS_LABEL = { mixed: 'mixto', colored: 'color', perfect: 'perfecto' };
+const BET_FIELD = { main: 'mainBet', pairs: 'pairsBet', three: 'threeBet' };
+const sumChips = (chips) => chips.reduce((s, v) => s + v, 0);
+
+// Casilla de apuesta con una PILA de fichas (una por cada clic) en vez de un solo ícono que cambia de número.
+function StackSpot({ label, sub, chips, locked, disabled, size = 92, className = '', win = false, onClick, onClear }) {
+  const total = sumChips(chips);
+  return (
+    <div className={`spot spot-rect ${total > 0 ? 'has' : ''} ${win ? 'win' : ''} ${locked ? 'locked' : ''} ${className}`} style={{ '--s': `${size}px` }}>
+      <button type="button" className="spot-btn" onClick={onClick} disabled={disabled} aria-label={`Apostar en ${label}`}>
+        <span className="spot-label">{label}</span>
+        {sub && <span className="spot-sub">{sub}</span>}
+        {total > 0 && (
+          <span className="spot-chip">
+            <ChipStack chips={chips} size={Math.round(size * 0.44)} />
+          </span>
+        )}
+      </button>
+      {total > 0 && <span className="spot-amount">{formatChips(total)}</span>}
+      {total > 0 && !locked && !disabled && (
+        <button type="button" className="spot-clear" onClick={onClear} aria-label={`Quitar apuesta de ${label}`}>
+          ✕
+        </button>
+      )}
+    </div>
+  );
+}
 
 function HandView({ hand, small }) {
   return (
@@ -53,7 +79,7 @@ function Seat({ seat, data, isMine, isTurn, canSit, sitting, onSit }) {
         <span className="seat-no">Silla {seat + 1}</span>
         {canSit ? (
           <button type="button" className="btn btn-ghost" disabled={sitting} onClick={() => onSit(seat)}>
-            Sentarse
+            {sitting ? 'Sentando…' : 'Sentarse'}
           </button>
         ) : (
           <span className="muted small">Vacía</span>
@@ -91,7 +117,7 @@ function Seat({ seat, data, isMine, isTurn, canSit, sitting, onSit }) {
 export default function BlackjackLive() {
   const { user } = useAuth();
   const [chip, setChip] = useState(50);
-  const [draft, setDraft] = useState({ main: 0, pairs: 0, three: 0 });
+  const [stacks, setStacks] = useState({ main: [], pairs: [], three: [] }); // fichas puestas en cada casilla, en orden
   const [sending, setSending] = useState(false);
   const [sitting, setSitting] = useState(false);
   const [error, setError] = useState('');
@@ -113,14 +139,19 @@ export default function BlackjackLive() {
   const canSitSomewhere = mySeat == null && ['betting', 'results', 'idle'].includes(phase);
   const canStandUp = mySeat != null && ['betting', 'results', 'idle'].includes(phase) && !alreadyBet;
   const seats = state?.seats || Array(SEAT_COUNT).fill(null);
-  const draftTotal = draft.main + draft.pairs + draft.three;
+  const draftTotal = sumChips(stacks.main) + sumChips(stacks.pairs) + sumChips(stacks.three);
   const net = outcome ? outcome.totalWin - outcome.totalBet : 0;
 
-  // Cada ronda nueva empieza con el borrador limpio (ajuste de estado durante el render, sin efecto: ver
+  // Lo que se ve en cada casilla: mientras se arma la apuesta son las fichas que se fueron clicando; si ya
+  // se confirmó pero la página se acaba de cargar (no hay pila local), se muestra una sola ficha con el
+  // monto real que ya quedó registrado en el servidor, para no dejar la casilla vacía.
+  const chipsFor = (key) => (stacks[key].length > 0 ? stacks[key] : mySeatData?.[BET_FIELD[key]] > 0 ? [mySeatData[BET_FIELD[key]]] : []);
+
+  // Cada ronda nueva empieza con la pila limpia (ajuste de estado durante el render, sin efecto: ver
   // "You Might Not Need an Effect" en react.dev para este patrón de resetear al cambiar una ronda).
   if (phase === 'betting' && state?.round != null && state.round !== resetRound) {
     setResetRound(state.round);
-    setDraft({ main: 0, pairs: 0, three: 0 });
+    setStacks({ main: [], pairs: [], three: [] });
     setOutcome(null);
     setError('');
   }
@@ -146,16 +177,21 @@ export default function BlackjackLive() {
     }
   };
 
-  const addChip = (key) => betting && !alreadyBet && setDraft((d) => ({ ...d, [key]: Math.min(MAX_BET, d[key] + chip) }));
-  const clearChip = (key) => setDraft((d) => ({ ...d, [key]: 0 }));
-  const clearAll = () => setDraft({ main: 0, pairs: 0, three: 0 });
+  const addChip = (key) =>
+    betting &&
+    !alreadyBet &&
+    sumChips(stacks[key]) + chip <= MAX_BET &&
+    setStacks((s) => ({ ...s, [key]: [...s[key], chip] }));
+  const clearChip = (key) => setStacks((s) => ({ ...s, [key]: [] }));
+  const clearAll = () => setStacks({ main: [], pairs: [], three: [] });
 
   const confirmBet = async () => {
-    if (draft.main < 10 || sending || mySeat == null) return;
+    const amounts = { main: sumChips(stacks.main), pairs: sumChips(stacks.pairs), three: sumChips(stacks.three) };
+    if (amounts.main < 10 || sending || mySeat == null) return;
     setSending(true);
     setError('');
     try {
-      await live.bet(mySeat, draft);
+      await live.bet(mySeat, amounts);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -224,8 +260,9 @@ export default function BlackjackLive() {
               : live.error || 'No se pudo conectar'}
           </strong>
           <span className="muted small">
-            Ronda {state?.round ?? '–'} · {seats.filter(Boolean).length}/{SEAT_COUNT} sillas ocupadas
-            {state?.shoe && ` · Zapato: ${state.shoe.remaining}/${state.shoe.size} cartas`}
+            {!online && (live.status === 'connecting' || live.status === 'offline')
+              ? 'Puede tardar hasta un minuto si el servidor estaba dormido.'
+              : `Ronda ${state?.round ?? '–'} · ${seats.filter(Boolean).length}/${SEAT_COUNT} sillas ocupadas${state?.shoe ? ` · Zapato: ${state.shoe.remaining}/${state.shoe.size} cartas` : ''}`}
           </span>
         </div>
       </div>
@@ -306,28 +343,32 @@ export default function BlackjackLive() {
         </div>
       )}
 
-      {mySeat != null && betting && !alreadyBet && (
+      {mySeat != null && betting && (
         <>
           <div className="spots-row">
-            <BetSpot label="Perfect Pairs" sub="6 · 12 · 25 a 1" size={90} amount={draft.pairs} disabled={!betting} onClick={() => addChip('pairs')} onClear={() => clearChip('pairs')} />
-            <BetSpot label="Apuesta" sub="principal" size={110} amount={draft.main} disabled={!betting} className="main-spot" onClick={() => addChip('main')} onClear={() => clearChip('main')} />
-            <BetSpot label="21 + 3" sub="hasta 100 a 1" size={90} amount={draft.three} disabled={!betting} onClick={() => addChip('three')} onClear={() => clearChip('three')} />
+            <StackSpot label="Perfect Pairs" sub="6 · 12 · 25 a 1" size={90} chips={chipsFor('pairs')} locked={alreadyBet} disabled={!betting || alreadyBet} onClick={() => addChip('pairs')} onClear={() => clearChip('pairs')} />
+            <StackSpot label="Apuesta" sub="principal" size={110} chips={chipsFor('main')} locked={alreadyBet} disabled={!betting || alreadyBet} className="main-spot" onClick={() => addChip('main')} onClear={() => clearChip('main')} />
+            <StackSpot label="21 + 3" sub="hasta 100 a 1" size={90} chips={chipsFor('three')} locked={alreadyBet} disabled={!betting || alreadyBet} onClick={() => addChip('three')} onClear={() => clearChip('three')} />
           </div>
-          <ChipTray value={chip} onChange={setChip} disabled={!betting} />
-          <div className="action-bar">
-            <button type="button" className="btn btn-ghost" onClick={clearAll} disabled={sending || draftTotal === 0}>
-              Limpiar
-            </button>
-            <button type="button" className="btn btn-gold deal-btn" onClick={confirmBet} disabled={sending || draft.main < 10}>
-              {sending ? 'Enviando…' : `Apostar · ${formatChips(draftTotal)} fichas`}
-            </button>
-          </div>
-          {draft.main > 0 && draft.main < 10 && <p className="muted small center">La apuesta principal mínima es 10 fichas.</p>}
+          {!alreadyBet ? (
+            <>
+              <ChipTray value={chip} onChange={setChip} disabled={!betting} />
+              <div className="action-bar">
+                <button type="button" className="btn btn-ghost" onClick={clearAll} disabled={sending || draftTotal === 0}>
+                  Limpiar
+                </button>
+                <button type="button" className="btn btn-gold deal-btn" onClick={confirmBet} disabled={sending || sumChips(stacks.main) < 10}>
+                  {sending ? 'Enviando…' : `Apostar · ${formatChips(draftTotal)} fichas`}
+                </button>
+              </div>
+              {stacks.main.length > 0 && sumChips(stacks.main) < 10 && <p className="muted small center">La apuesta principal mínima es 10 fichas.</p>}
+            </>
+          ) : (
+            <p className="muted center small">
+              Ya apostaste {formatChips(mySeatData.mainBet + mySeatData.pairsBet + mySeatData.threeBet)} fichas. Esperando a que reparta el crupier…
+            </p>
+          )}
         </>
-      )}
-
-      {mySeat != null && betting && alreadyBet && (
-        <p className="muted center small">Ya apostaste {formatChips(mySeatData.mainBet + mySeatData.pairsBet + mySeatData.threeBet)} fichas. Esperando a que reparta el crupier…</p>
       )}
 
       {mySeat != null && canStandUp && (
