@@ -354,12 +354,37 @@ tr:last-child td { border-bottom: none; }
   padding: 10px 16px; cursor: pointer; border-bottom: 2px solid transparent;
 }
 .tabs button.active { color: var(--gold); border-bottom-color: var(--gold); }
+.tabs.small { border-bottom: none; gap: 4px; background: var(--card-2); border-radius: 999px; padding: 3px; display: inline-flex; width: fit-content; }
+.tabs.small button { padding: 6px 14px; border-radius: 999px; font-size: 0.82rem; }
+.tabs.small button.active { background: var(--gold); color: #14110a; border-bottom: none; }
 .events-list { display: flex; flex-direction: column; gap: 12px; }
 .event-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; gap: 10px; }
 .event-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
 .tag { background: var(--gold-soft); color: var(--gold); padding: 3px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 700; }
-.event-teams { font-size: 1.1rem; font-weight: 600; }
+.event-teams { display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 1.05rem; font-weight: 600; flex-wrap: wrap; }
+.event-teams .team-name { display: inline-flex; align-items: center; gap: 8px; }
+.event-teams .vs { font-size: 0.8rem; font-weight: 400; }
+.team-badge {
+  display: inline-grid; place-items: center; border-radius: 50%; color: #fff; font-weight: 800;
+  letter-spacing: 0.02em; flex: none; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4), inset 0 0 0 2px rgba(255, 255, 255, 0.15);
+}
+.market-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-top: 2px; }
 .odds-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; }
+.league-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; }
+.league-pill {
+  flex: none; font-family: inherit; font-size: 0.8rem; font-weight: 600; white-space: nowrap; cursor: pointer;
+  background: var(--card-2); color: var(--muted); border: 1px solid var(--border); border-radius: 999px; padding: 6px 14px; transition: 0.2s;
+}
+.league-pill:hover { color: var(--text); border-color: rgba(201, 164, 92, 0.5); }
+.league-pill.active { background: var(--gold); color: #14110a; border-color: var(--gold); }
+.slip-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: var(--card-2); border-radius: 10px; }
+.slip-row-info { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.slip-row-info strong { font-size: 0.88rem; }
+.slip-amount { width: 90px; flex: none; }
+.parlay-legs { display: flex; flex-direction: column; gap: 4px; padding-left: 18px; font-size: 0.85rem; }
+.parlay-legs li.won { color: var(--green); }
+.parlay-legs li.lost { color: var(--red); opacity: 0.85; }
+.parlay-legs li.push { color: var(--gold); }
 .odd-btn {
   font-family: inherit; cursor: pointer; display: flex; flex-direction: column; gap: 4px; align-items: center;
   background: var(--card-2); color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 10px; transition: 0.2s; font-size: 0.85rem;
