@@ -11,8 +11,25 @@ import useLiveBlackjack from '../hooks/useLiveBlackjack';
 import { useCountdown } from '../hooks/useLiveTable';
 
 const MAX_BET = 100000;
-const CARD_STAGGER = 160;
+const CARD_STAGGER = 190; // ms entre cada carta del reparto inicial
 const SEAT_COUNT = 6;
+
+// Orden del reparto inicial: TODAS las sillas primero (sus 2 cartas, por rondas, en orden de silla) y el
+// crupier al final — como pidió el usuario, en vez de que cada silla reparta sus cartas en paralelo.
+// Lo que llega después (pedir, dividir, el crupier completando su mano) no entra en este reparto: ya pasa
+// en tiempo real, cada cosa en su propio momento; si llegan varias cartas juntas (el crupier pidiendo
+// varias veces de un tirón) se escalonan entre ellas para que no aparezcan todas de golpe.
+function dealOrder(seats) {
+  const dealt = seats.map((d, i) => (d && d.hands.length > 0 ? i : null)).filter((i) => i !== null);
+  const seatSlot = (seatIndex) => dealt.indexOf(seatIndex);
+  const forHand = (seatIndex, hand, cardIndex) => {
+    if (cardIndex >= 2) return (cardIndex - 2) * CARD_STAGGER;
+    if (hand.fromSplit) return 0; // una mano dividida nace a mitad de la partida, no es parte del reparto inicial
+    return (cardIndex * dealt.length + seatSlot(seatIndex)) * CARD_STAGGER;
+  };
+  const forDealer = (cardIndex) => (cardIndex >= 2 ? (cardIndex - 2) * CARD_STAGGER : (2 * dealt.length + cardIndex) * CARD_STAGGER);
+  return { forHand, forDealer };
+}
 
 const PHASE_LABEL = {
   idle: 'Mesa en pausa',
@@ -26,24 +43,23 @@ const PHASE_LABEL = {
 const RESULT_TAG = { blackjack: 'Blackjack', win: 'Ganó', push: 'Empate', lose: 'Perdió', surrender: 'Retirada' };
 const PAIRS_LABEL = { mixed: 'mixto', colored: 'color', perfect: 'perfecto' };
 const BET_FIELD = { main: 'mainBet', pairs: 'pairsBet', three: 'threeBet' };
-const sumChips = (chips) => chips.reduce((s, v) => s + v, 0);
 
-// Casilla de apuesta con una PILA de fichas (una por cada clic) en vez de un solo ícono que cambia de número.
-function StackSpot({ label, sub, chips, locked, disabled, size = 92, className = '', win = false, onClick, onClear }) {
-  const total = sumChips(chips);
+// Casilla de apuesta con una pila compacta de fichas (como máximo 4, de colores distintos) en vez de un
+// solo ícono o una fila que se amontona con muchos clics.
+function StackSpot({ label, sub, amount, locked, disabled, size = 92, className = '', win = false, onClick, onClear }) {
   return (
-    <div className={`spot spot-rect ${total > 0 ? 'has' : ''} ${win ? 'win' : ''} ${locked ? 'locked' : ''} ${className}`} style={{ '--s': `${size}px` }}>
+    <div className={`spot spot-rect ${amount > 0 ? 'has' : ''} ${win ? 'win' : ''} ${locked ? 'locked' : ''} ${className}`} style={{ '--s': `${size}px` }}>
       <button type="button" className="spot-btn" onClick={onClick} disabled={disabled} aria-label={`Apostar en ${label}`}>
         <span className="spot-label">{label}</span>
         {sub && <span className="spot-sub">{sub}</span>}
-        {total > 0 && (
+        {amount > 0 && (
           <span className="spot-chip">
-            <ChipStack chips={chips} size={Math.round(size * 0.44)} />
+            <ChipStack amount={amount} size={Math.round(size * 0.44)} />
           </span>
         )}
       </button>
-      {total > 0 && <span className="spot-amount">{formatChips(total)}</span>}
-      {total > 0 && !locked && !disabled && (
+      {amount > 0 && <span className="spot-amount">{formatChips(amount)}</span>}
+      {amount > 0 && !locked && !disabled && (
         <button type="button" className="spot-clear" onClick={onClear} aria-label={`Quitar apuesta de ${label}`}>
           ✕
         </button>
@@ -52,12 +68,12 @@ function StackSpot({ label, sub, chips, locked, disabled, size = 92, className =
   );
 }
 
-function HandView({ hand, small }) {
+function HandView({ hand, small, getDelay }) {
   return (
     <div className={`bj-hand ${hand.active ? 'active' : ''} ${small ? 'small' : ''}`}>
       <div className="bj-cards">
         {hand.cards.map((c, i) => (
-          <PlayingCard key={i} card={c} width={small ? 58 : 76} delay={i * CARD_STAGGER} />
+          <PlayingCard key={i} card={c} width={small ? 58 : 76} delay={getDelay(i)} />
         ))}
       </div>
       <div className={`score-bubble inline ${hand.score > 21 ? 'bust' : ''} ${hand.score === 21 ? 'top' : ''}`}>{hand.score}</div>
@@ -72,7 +88,7 @@ function HandView({ hand, small }) {
   );
 }
 
-function Seat({ seat, data, isMine, isTurn, canSit, sitting, onSit }) {
+function Seat({ seat, data, isMine, isTurn, canSit, sitting, onSit, forHand }) {
   if (!data) {
     return (
       <div className="bjl-seat empty">
@@ -99,7 +115,7 @@ function Seat({ seat, data, isMine, isTurn, canSit, sitting, onSit }) {
       ) : (
         <div className="bjl-hands">
           {data.hands.map((h, i) => (
-            <HandView key={i} hand={h} small={data.hands.length > 1} />
+            <HandView key={i} hand={h} small={data.hands.length > 1} getDelay={(cardIndex) => forHand(seat, h, cardIndex)} />
           ))}
         </div>
       )}
@@ -117,7 +133,7 @@ function Seat({ seat, data, isMine, isTurn, canSit, sitting, onSit }) {
 export default function BlackjackLive() {
   const { user } = useAuth();
   const [chip, setChip] = useState(50);
-  const [stacks, setStacks] = useState({ main: [], pairs: [], three: [] }); // fichas puestas en cada casilla, en orden
+  const [draft, setDraft] = useState({ main: 0, pairs: 0, three: 0 }); // borrador de apuesta (aún no confirmada)
   const [sending, setSending] = useState(false);
   const [sitting, setSitting] = useState(false);
   const [error, setError] = useState('');
@@ -139,19 +155,19 @@ export default function BlackjackLive() {
   const canSitSomewhere = mySeat == null && ['betting', 'results', 'idle'].includes(phase);
   const canStandUp = mySeat != null && ['betting', 'results', 'idle'].includes(phase) && !alreadyBet;
   const seats = state?.seats || Array(SEAT_COUNT).fill(null);
-  const draftTotal = sumChips(stacks.main) + sumChips(stacks.pairs) + sumChips(stacks.three);
+  const { forHand, forDealer } = dealOrder(seats);
+  const draftTotal = draft.main + draft.pairs + draft.three;
   const net = outcome ? outcome.totalWin - outcome.totalBet : 0;
 
-  // Lo que se ve en cada casilla: mientras se arma la apuesta son las fichas que se fueron clicando; si ya
-  // se confirmó pero la página se acaba de cargar (no hay pila local), se muestra una sola ficha con el
-  // monto real que ya quedó registrado en el servidor, para no dejar la casilla vacía.
-  const chipsFor = (key) => (stacks[key].length > 0 ? stacks[key] : mySeatData?.[BET_FIELD[key]] > 0 ? [mySeatData[BET_FIELD[key]]] : []);
+  // Lo que se ve en cada casilla: mientras se arma la apuesta es el borrador local; si ya se confirmó pero
+  // la página se acaba de cargar (no hay borrador local), se muestra el monto real del servidor.
+  const amountFor = (key) => draft[key] || mySeatData?.[BET_FIELD[key]] || 0;
 
-  // Cada ronda nueva empieza con la pila limpia (ajuste de estado durante el render, sin efecto: ver
+  // Cada ronda nueva empieza con el borrador limpio (ajuste de estado durante el render, sin efecto: ver
   // "You Might Not Need an Effect" en react.dev para este patrón de resetear al cambiar una ronda).
   if (phase === 'betting' && state?.round != null && state.round !== resetRound) {
     setResetRound(state.round);
-    setStacks({ main: [], pairs: [], three: [] });
+    setDraft({ main: 0, pairs: 0, three: 0 });
     setOutcome(null);
     setError('');
   }
@@ -177,21 +193,16 @@ export default function BlackjackLive() {
     }
   };
 
-  const addChip = (key) =>
-    betting &&
-    !alreadyBet &&
-    sumChips(stacks[key]) + chip <= MAX_BET &&
-    setStacks((s) => ({ ...s, [key]: [...s[key], chip] }));
-  const clearChip = (key) => setStacks((s) => ({ ...s, [key]: [] }));
-  const clearAll = () => setStacks({ main: [], pairs: [], three: [] });
+  const addChip = (key) => betting && !alreadyBet && draft[key] + chip <= MAX_BET && setDraft((d) => ({ ...d, [key]: d[key] + chip }));
+  const clearChip = (key) => setDraft((d) => ({ ...d, [key]: 0 }));
+  const clearAll = () => setDraft({ main: 0, pairs: 0, three: 0 });
 
   const confirmBet = async () => {
-    const amounts = { main: sumChips(stacks.main), pairs: sumChips(stacks.pairs), three: sumChips(stacks.three) };
-    if (amounts.main < 10 || sending || mySeat == null) return;
+    if (draft.main < 10 || sending || mySeat == null) return;
     setSending(true);
     setError('');
     try {
-      await live.bet(mySeat, amounts);
+      await live.bet(mySeat, draft);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -279,7 +290,7 @@ export default function BlackjackLive() {
           <div className="bj-hand">
             <div className="bj-cards">
               {(state?.dealer?.cards || []).map((c, i) => (
-                <PlayingCard key={i} card={c} width={88} delay={i * CARD_STAGGER} />
+                <PlayingCard key={i} card={c} width={88} delay={forDealer(i)} />
               ))}
               {!state?.dealer?.cards?.length && <div className="bj-slot" aria-hidden="true" />}
             </div>
@@ -306,7 +317,7 @@ export default function BlackjackLive() {
 
         <div className="bjl-seats">
           {seats.map((data, i) => (
-            <Seat key={i} seat={i} data={data} isMine={i === mySeat} isTurn={state?.turn?.seat === i} canSit={canSitSomewhere} sitting={sitting} onSit={sitAt} />
+            <Seat key={i} seat={i} data={data} isMine={i === mySeat} isTurn={state?.turn?.seat === i} canSit={canSitSomewhere} sitting={sitting} onSit={sitAt} forHand={forHand} />
           ))}
         </div>
       </div>
@@ -346,9 +357,9 @@ export default function BlackjackLive() {
       {mySeat != null && betting && (
         <>
           <div className="spots-row">
-            <StackSpot label="Perfect Pairs" sub="6 · 12 · 25 a 1" size={90} chips={chipsFor('pairs')} locked={alreadyBet} disabled={!betting || alreadyBet} onClick={() => addChip('pairs')} onClear={() => clearChip('pairs')} />
-            <StackSpot label="Apuesta" sub="principal" size={110} chips={chipsFor('main')} locked={alreadyBet} disabled={!betting || alreadyBet} className="main-spot" onClick={() => addChip('main')} onClear={() => clearChip('main')} />
-            <StackSpot label="21 + 3" sub="hasta 100 a 1" size={90} chips={chipsFor('three')} locked={alreadyBet} disabled={!betting || alreadyBet} onClick={() => addChip('three')} onClear={() => clearChip('three')} />
+            <StackSpot label="Perfect Pairs" sub="6 · 12 · 25 a 1" size={90} amount={amountFor('pairs')} locked={alreadyBet} disabled={!betting || alreadyBet} onClick={() => addChip('pairs')} onClear={() => clearChip('pairs')} />
+            <StackSpot label="Apuesta" sub="principal" size={110} amount={amountFor('main')} locked={alreadyBet} disabled={!betting || alreadyBet} className="main-spot" onClick={() => addChip('main')} onClear={() => clearChip('main')} />
+            <StackSpot label="21 + 3" sub="hasta 100 a 1" size={90} amount={amountFor('three')} locked={alreadyBet} disabled={!betting || alreadyBet} onClick={() => addChip('three')} onClear={() => clearChip('three')} />
           </div>
           {!alreadyBet ? (
             <>
@@ -357,11 +368,11 @@ export default function BlackjackLive() {
                 <button type="button" className="btn btn-ghost" onClick={clearAll} disabled={sending || draftTotal === 0}>
                   Limpiar
                 </button>
-                <button type="button" className="btn btn-gold deal-btn" onClick={confirmBet} disabled={sending || sumChips(stacks.main) < 10}>
+                <button type="button" className="btn btn-gold deal-btn" onClick={confirmBet} disabled={sending || draft.main < 10}>
                   {sending ? 'Enviando…' : `Apostar · ${formatChips(draftTotal)} fichas`}
                 </button>
               </div>
-              {stacks.main.length > 0 && sumChips(stacks.main) < 10 && <p className="muted small center">La apuesta principal mínima es 10 fichas.</p>}
+              {draft.main > 0 && draft.main < 10 && <p className="muted small center">La apuesta principal mínima es 10 fichas.</p>}
             </>
           ) : (
             <p className="muted center small">

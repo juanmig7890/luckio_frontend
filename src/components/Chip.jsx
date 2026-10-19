@@ -5,6 +5,8 @@ const STYLES = {
   100: { base: '#1d6b4f', ink: '#ffffff', edge: '#e4f1ea' },
   500: { base: '#1a1a1a', ink: '#e7c873', edge: '#e7c873' },
   1000: { base: '#5b3a8c', ink: '#ffffff', edge: '#e9ddf7' },
+  5000: { base: '#b5541f', ink: '#ffffff', edge: '#fbddc3' },
+  25000: { base: '#0f766e', ink: '#f0fdfa', edge: '#99f6e4' },
 };
 const FALLBACK = { base: '#9c7a2f', ink: '#ffffff', edge: '#f3e3b8' };
 

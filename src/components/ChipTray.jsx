@@ -1,6 +1,6 @@
 import Chip from './Chip';
 
-const VALUES = [10, 50, 100, 500, 1000];
+const VALUES = [10, 50, 100, 500, 1000, 5000, 25000];
 
 // Bandeja de fichas: eliges el valor y luego tocas una casilla del tapete para apostarlo.
 export default function ChipTray({ value, onChange, disabled, label = 'Elige una ficha y toca la mesa' }) {
